@@ -6,6 +6,8 @@ defmodule NamedPipeExample.MixProject do
       app: :named_pipe_example,
       version: "0.1.0",
       elixir: "~> 1.6",
+      compilers: [:rustler] ++ Mix.compilers,
+      rustler_crates: rustler_crates(),
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
