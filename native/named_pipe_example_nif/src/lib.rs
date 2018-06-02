@@ -15,12 +15,13 @@ mod atoms {
 
 rustler_export_nifs! {
     "Elixir.NamedPipeExampleNif",
-    [("run", 1, run)],
+    [("run", 2, run)],
     None
 }
 
 fn run<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
-    let _message: String = try!(args[0].decode());
+    let _path: String = try!(args[0].decode());
+    let _message: String = try!(args[1].decode());
 
     Ok((atoms::ok()).encode(env))
 }
