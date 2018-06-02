@@ -11,6 +11,13 @@ defmodule NamedPipeExample.MixProject do
     ]
   end
 
+  defp rustler_crates() do
+    [named_pipe_example: [
+      path: "native/named_pipe_example_nif",
+      mode: :release,
+    ]]
+  end
+
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
