@@ -2,7 +2,13 @@
 // #[macro_use] extern crate rustler_codegen;
 #[macro_use] extern crate lazy_static;
 
+extern crate libc;
+
 use rustler::{NifEnv, NifTerm, NifResult, NifEncoder};
+use libc::{fork, mkfifo, exit};
+use std::ffi::CString;
+use std::fs::File;
+use std::io::prelude::*;
 
 mod atoms {
     rustler_atoms! {
@@ -20,8 +26,28 @@ rustler_export_nifs! {
 }
 
 fn run<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
-    let _path: String = try!(args[0].decode());
-    let _message: String = try!(args[1].decode());
+    let path: String = try!(args[0].decode());
+    let message: String = try!(args[1].decode());
 
-    Ok((atoms::ok()).encode(env))
+    let path_c = CString::new(path.clone()).unwrap();
+
+    unsafe {
+        mkfifo(path_c.as_ptr(), 0o666);
+        println!("Rust: subprocess will be forked.");
+        match fork() {
+            0 => { // 子プロセス
+                println!("Rust: subprocess forked.");
+                println!("Rust: will File::create");
+                let mut f = File::create(&path).expect("file not found");
+                println!("Rust: will write_all");
+                f.write_all(message.as_bytes()).expect("failed");
+                println!("Rust: will exit.");
+                exit(0);
+            },
+            _ => { // 親プロセス
+                println!("Rust: parent will finished.");
+                Ok((atoms::ok()).encode(env))
+            },
+        }
+    }
 }
